@@ -33,6 +33,15 @@ export default {
       });
     }
 
+    // Cloudflare can expose the public custom-domain origin differently from
+    // request.url during a form POST. Normalize it before the base Worker runs
+    // its same-origin check.
+    if (request.method === "POST" && url.pathname === "/") {
+      const headers = new Headers(request.headers);
+      headers.set("Origin", url.origin);
+      request = new Request(request, { headers });
+    }
+
     return baseWorker.fetch(request, env, ctx);
   }
 };
